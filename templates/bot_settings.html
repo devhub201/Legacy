@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block heading %}Legacy Bot{% endblock %}
+{% block content %}
+<div class="stat-strip" style="grid-template-columns:repeat(2,1fr);">
+  <div class="stat-box"><div class="label">Status</div><div class="value"><span class="status-dot {{ 'running' if is_running else 'exited' }}">{{ 'RUNNING' if is_running else 'STOPPED' }}</span></div></div>
+  <div class="stat-box"><div class="label">Last Heartbeat</div><div class="value" style="font-size:15px;">{{ heartbeat or 'never' }}</div></div>
+</div>
+<div class="panel"><h2>Bot Token</h2>
+<form method="post" action="/bot-settings/save-token">
+  <label>Discord Bot Token</label>
+  <input name="token" type="password" placeholder="{{ masked_token or 'Paste your bot token' }}">
+  <button class="btn" type="submit">Save Token</button>
+</form></div>
+<div class="panel"><h2>Controls</h2>
+<button class="btn" onclick="botAction('start')">▶ Start Bot</button>
+<button class="btn-outline" onclick="botAction('stop')">⏹ Stop Bot</button>
+<button class="btn-outline" onclick="botAction('restart')">⟳ Restart Bot</button>
+</div>
+<div class="panel"><h2>Recent Deliveries</h2>
+<table><thead><tr><th>#</th><th>Container</th><th>Customer</th><th>Status</th><th>Queued</th><th>Sent</th></tr></thead>
+<tbody>{% for d in delivery_log %}<tr><td>#{{ d.id }}</td><td>{{ d.container_name }}</td><td>&lt;@{{ d.discord_id }}&gt;</td><td>{{ d.status }}</td><td>{{ d.created_at[:19] }}</td><td>{{ d.sent_at[:19] if d.sent_at else '—' }}</td></tr>{% endfor %}</tbody>
+</table></div>
+<script>
+async function botAction(act) {
+  const res = await fetch(`/api/bot/${act}`, { method: "POST" });
+  const data = await res.json();
+  alert(data.message); location.reload();
+}
+</script>
+{% endblock %}
