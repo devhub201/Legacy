@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html><head><title>{% block title %}Legacy Cloud{% endblock %}</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Consolas','Courier New',monospace; }
+body { background:#000; color:#fff; display:flex; min-height:100vh; position:relative; overflow-x:hidden; }
+#bg-canvas { position:fixed; top:0; left:0; z-index:0; pointer-events:none; }
+
+.sidebar { width:230px; background:#0a0a0a; border-right:1px solid #222; padding:20px 0; flex-shrink:0; position:relative; z-index:2;
+  animation:slideIn 0.4s ease-out; }
+@keyframes slideIn{from{transform:translateX(-20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.sidebar .logo { padding:0 20px 24px; font-weight:800; font-size:16px; letter-spacing:1px; border-bottom:1px solid #222; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.sidebar .logo img { height:28px; width:auto; }
+.sidebar a { display:block; padding:12px 20px; color:#888; text-decoration:none; font-size:13.5px; border-left:3px solid transparent; transition: all 0.15s; }
+.sidebar a:hover { color:#fff; background:#111; padding-left:24px; }
+.sidebar a.active { color:#fff; border-left-color:#fff; background:#111; font-weight:700; }
+
+.content { flex:1; padding:26px 30px; overflow-x:auto; position:relative; z-index:2; }
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; animation:fadeDown 0.5s ease-out; }
+@keyframes fadeDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.topbar h1 { font-size:20px; letter-spacing:0.5px; }
+.topbar a.logout { color:#666; text-decoration:none; font-size:12.5px; border:1px solid #333; padding:6px 12px; transition:all .15s; }
+.topbar a.logout:hover { border-color:#fff; color:#fff; }
+
+.panel { background:#0a0a0a; border:1px solid #222; padding:20px; margin-bottom:18px; animation:fadeUp 0.45s ease-out backwards; }
+.panel:nth-of-type(1){animation-delay:.05s;} .panel:nth-of-type(2){animation-delay:.1s;} .panel:nth-of-type(3){animation-delay:.15s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.panel h2 { font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#999; margin-bottom:16px; }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead th { text-align:left; color:#666; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.6px; padding-bottom:10px; border-bottom:1px solid #222; }
+tbody td { padding:12px 8px; border-bottom:1px solid #161616; }
+tbody tr { transition: background 0.15s; animation:rowIn 0.3s ease-out backwards; }
+tbody tr:nth-child(1){animation-delay:.02s;} tbody tr:nth-child(2){animation-delay:.05s;} tbody tr:nth-child(3){animation-delay:.08s;}
+tbody tr:nth-child(4){animation-delay:.11s;} tbody tr:nth-child(5){animation-delay:.14s;}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);}}
+tbody tr:hover { background:#0f0f0f; }
+
+.btn { background:#fff; color:#000; border:none; padding:9px 16px; font-weight:800; font-size:12px; cursor:pointer; letter-spacing:0.5px; transition: all 0.15s; }
+.btn:hover { background:#ccc; transform:translateY(-1px); box-shadow:0 4px 14px rgba(255,255,255,0.12); }
+.btn:active { transform:translateY(0); }
+.btn-outline { background:transparent; color:#fff; border:1px solid #444; padding:8px 15px; font-size:12px; cursor:pointer; transition: all 0.15s; }
+.btn-outline:hover { border-color:#fff; background:rgba(255,255,255,0.05); }
+.btn-danger { background:#1a0000; color:#ff5555; border:1px solid #ff5555; padding:8px 15px; font-size:12px; cursor:pointer; transition: all 0.15s; }
+.btn-danger:hover { background:#ff5555; color:#000; }
+
+input, select { background:#000; border:1px solid #333; color:#fff; padding:9px 10px; font-size:13px; font-family:inherit; width:100%; margin-bottom:12px; transition: border-color 0.15s; }
+input:focus, select:focus { outline:none; border-color:#fff; box-shadow:0 0 0 1px #fff; }
+label { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px; }
+
+.status-dot { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; }
+.status-dot::before { content:''; width:6px; height:6px; border-radius:50%; }
+.running::before { background:#fff; box-shadow:0 0 6px #fff; animation:blip 1.5s infinite; } .running { color:#fff; }
+@keyframes blip{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.exited::before { background:#555; } .exited { color:#666; }
+
+.stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+.stat-box { background:#0a0a0a; border:1px solid #222; padding:18px; transition: border-color 0.2s, transform 0.2s; animation:fadeUp 0.4s ease-out backwards; }
+.stat-box:hover { border-color:#555; transform:translateY(-2px); }
+.stat-box:nth-of-type(1){animation-delay:0s;} .stat-box:nth-of-type(2){animation-delay:.06s;}
+.stat-box:nth-of-type(3){animation-delay:.12s;} .stat-box:nth-of-type(4){animation-delay:.18s;}
+.stat-box .label { font-size:10.5px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.stat-box .value { font-size:26px; font-weight:800; }
+
+iframe { width:100%; height:380px; border:1px solid #333; margin-top:10px; }
+</style></head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="sidebar">
+  <div class="logo">
+    {% if branding.logo_url %}<img src="{{ branding.logo_url }}" alt="logo">{% else %}◆{% endif %}
+    LEGACY CLOUD
+  </div>
+  <a href="/dashboard" class="{{ 'active' if active_page=='dashboard' }}">Dashboard</a>
+  <a href="/nodes" class="{{ 'active' if active_page=='nodes' }}">Nodes</a>
+  <a href="/vps" class="{{ 'active' if active_page=='vps' }}">VPS Management</a>
+  <a href="/bot-settings" class="{{ 'active' if active_page=='bot' }}">Legacy Bot</a>
+  <a href="#">Analytics</a>
+  <a href="/settings" class="{{ 'active' if active_page=='settings' }}">Settings</a>
+</div>
+<div class="content">
+  <div class="topbar"><h1>{% block heading %}{% endblock %}</h1><a class="logout" href="/logout">{{ username }} — LOGOUT</a></div>
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+const theme = "{{ branding.background_theme or 'grid' }}";
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = innerWidth; canvas.height = innerHeight;
+window.addEventListener('resize', () => { canvas.width = innerWidth; canvas.height = innerHeight; });
+
+if (theme === 'grid') {
+  let offset = 0;
+  function drawGrid() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    const size = 48;
+    offset = (offset + 0.15) % size;
+    for (let x = -size; x < canvas.width + size; x += size) {
+      ctx.beginPath(); ctx.moveTo(x + offset, 0); ctx.lineTo(x + offset, canvas.height); ctx.stroke();
+    }
+    for (let y = -size; y < canvas.height + size; y += size) {
+      ctx.beginPath(); ctx.moveTo(0, y + offset); ctx.lineTo(canvas.width, y + offset); ctx.stroke();
+    }
+    requestAnimationFrame(drawGrid);
+  }
+  drawGrid();
+} else if (theme === 'particles') {
+  const particles = Array.from({length: 60}, () => ({
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+    vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, r: Math.random()*1.5+0.5
+  }));
+  function drawParticles() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fill();
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+} else if (theme === 'matrix') {
+  const chars = '01アイウエオカキク';
+  const cols = Math.floor(canvas.width/16);
+  const drops = Array(cols).fill(0);
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.font = '14px monospace';
+    drops.forEach((y,i) => {
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*16, y);
+      if (y > canvas.height && Math.random() > 0.975) drops[i] = 0; else drops[i] = y + 16;
+    });
+    requestAnimationFrame(drawMatrix);
+  }
+  drawMatrix();
+}
+
+document.querySelectorAll('.stat-box .value').forEach(el => {
+  const raw = el.textContent.trim();
+  const match = raw.match(/^([₹]?)(\d+)(.*)$/);
+  if (!match) return;
+  const [, prefix, numStr, suffix] = match;
+  const target = parseInt(numStr, 10);
+  let current = 0;
+  const step = Math.max(1, Math.ceil(target / 30));
+  const tick = () => {
+    current = Math.min(current + step, target);
+    el.textContent = prefix + current + suffix;
+    if (current < target) requestAnimationFrame(tick);
+  };
+  tick();
+});
+</script>
+</body></html>
