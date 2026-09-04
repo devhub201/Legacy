@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block heading %}Nodes{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>This Panel's SSH Public Key</h2>
+  <p style="color:#888;font-size:12.5px;margin-bottom:10px;">Copy this into each node's <code>~/.ssh/authorized_keys</code> before adding it below.</p>
+  <p style="color:#888;font-size:12px;">Run on the panel machine: <code style="color:#fff;">{{ panel_pubkey_hint }}</code></p>
+</div>
+<div class="panel">
+  <h2>Add Node</h2>
+  <form method="post" action="/nodes/add">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+      <div><label>Node Name</label><input name="name" placeholder="e.g. darky8800" required></div>
+      <div><label>IP Address</label><input name="ip" required></div>
+      <div><label>SSH User</label><input name="ssh_user" value="root"></div>
+      <div><label>SSH Port</label><input name="ssh_port" type="number" value="22"></div>
+      <div><label>Total RAM</label><input name="ram_total" placeholder="e.g. 30GB" required></div>
+      <div><label>Total CPU</label><input name="cpu_total" placeholder="e.g. 8 cores" required></div>
+      <div><label>Total Disk</label><input name="disk_total" placeholder="e.g. 92GB" required></div>
+    </div>
+    <button class="btn" type="submit">Add Node</button>
+  </form>
+</div>
+<div class="panel">
+  <h2>Registered Nodes</h2>
+  <table>
+    <thead><tr><th>Name</th><th>IP</th><th>RAM/CPU/Disk</th><th>Connection</th><th></th></tr></thead>
+    <tbody>
+      {% for n in nodes %}
+      <tr>
+        <td>{{ n.name }}</td><td>{{ n.ip }}</td><td>{{ n.ram_total }} / {{ n.cpu_total }} / {{ n.disk_total }}</td>
+        <td><span class="status-dot {{ 'running' if n.online else 'exited' }}">{{ 'ONLINE' if n.online else 'OFFLINE' }}</span></td>
+        <td><form method="post" action="/nodes/{{ n.id }}/delete" style="display:inline"><button class="btn-danger" type="submit">Remove</button></form></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
