@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block heading %}Settings{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <h2>Branding — Logo</h2>
+  {% if branding.logo_url %}
+  <p style="margin-bottom:12px;"><img src="{{ branding.logo_url }}" style="height:48px;"></p>
+  {% endif %}
+  <form method="post" action="/settings/branding/logo" enctype="multipart/form-data">
+    <label>Upload Logo (PNG/JPG/SVG)</label>
+    <input type="file" name="logo" accept="image/*" required style="padding:9px;">
+    <button class="btn" type="submit" style="margin-top:10px;">Upload Logo</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Branding — Background Theme</h2>
+  <form method="post" action="/settings/branding/theme">
+    <label>Choose a theme</label>
+    <select name="background_theme">
+      {% for key, label in background_themes.items() %}
+      <option value="{{ key }}" {{ 'selected' if branding.background_theme == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit">Apply Theme</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Website API Integration</h2>
+  <p style="color:#888; font-size:12.5px; line-height:1.8; margin-bottom:14px;">
+    Connect your website to this panel like Pterodactyl's Application API. Generate a key below,
+    then have your checkout system call these endpoints with header:<br>
+    <code style="color:#fff;">Authorization: Bearer &lt;your-api-key&gt;</code>
+  </p>
+  <div style="background:#000; border:1px solid #222; padding:14px; font-size:12px; line-height:2; color:#aaa;">
+    <b style="color:#fff;">Base URL:</b> http://{{ public_host }}:{{ panel_port }}/api/v1<br>
+    <b style="color:#fff;">GET</b> /nodes — list your machines &amp; capacity<br>
+    <b style="color:#fff;">GET</b> /vps — list all VPS<br>
+    <b style="color:#fff;">GET</b> /vps/{id} — get one VPS<br>
+    <b style="color:#fff;">POST</b> /vps — create a VPS (called right after checkout)<br>
+    <b style="color:#fff;">POST</b> /vps/{id}/suspend — stop a VPS (e.g. non-payment)<br>
+    <b style="color:#fff;">POST</b> /vps/{id}/unsuspend — restart a VPS<br>
+    <b style="color:#fff;">POST</b> /vps/{id}/renew — extend renewal date<br>
+    <b style="color:#fff;">DELETE</b> /vps/{id} — permanently remove
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Generate API Key</h2>
+  <form method="post" action="/settings/api-keys/create">
+    <label>Key Name (e.g. "Main Website")</label>
+    <input name="name" placeholder="What is this key for?" required>
+    <button class="btn" type="submit">Generate Key</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Active API Keys</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Key</th><th>Created</th><th>Last Used</th><th></th></tr></thead>
+    <tbody>
+      {% for k in api_keys %}
+      <tr>
+        <td>{{ k.name }}</td><td style="font-family:monospace; font-size:11px;">{{ k.key_value }}</td>
+        <td>{{ k.created_at[:19] }}</td><td>{{ k.last_used[:19] if k.last_used else 'never' }}</td>
+        <td><form method="post" action="/settings/api-keys/{{ k.id }}/revoke" style="display:inline"><button class="btn-danger" type="submit">Revoke</button></form></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
