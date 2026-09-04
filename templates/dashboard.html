@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<div class="stat-strip">
+  <div class="stat-box"><div class="label">Total VPS</div><div class="value">{{ total_vps }}</div></div>
+  <div class="stat-box"><div class="label">Running</div><div class="value">{{ running_vps }}</div></div>
+  <div class="stat-box"><div class="label">Nodes</div><div class="value">{{ total_nodes }}</div></div>
+  <div class="stat-box"><div class="label">Est. Revenue</div><div class="value">₹{{ revenue }}</div></div>
+</div>
+<div class="panel"><h2>Quick Links</h2>
+<p style="color:#888;font-size:13px;line-height:2;">
+→ <a href="/nodes" style="color:#fff;">Nodes</a> — add/manage your physical machines<br>
+→ <a href="/vps" style="color:#fff;">VPS Management</a> — create and control instances<br>
+→ <a href="/bot-settings" style="color:#fff;">Legacy Bot</a> — credential delivery + renewals<br>
+→ <a href="/settings" style="color:#fff;">Settings</a> — API keys, logo, background theme
+</p></div>
+{% endblock %}
