@@ -25,8 +25,20 @@ def get_client(node):
     node_id = node["id"]
     if node_id in _clients:
         return _clients[node_id]
-    _ensure_ssh_ready(node)
-    client = docker.DockerClient(base_url=f"ssh://{node['ip']}", use_ssh_client=True)
+
+    ip, user, port = node["ip"], node["ssh_user"], node["ssh_port"]
+    password = node.get("ssh_password")
+
+    subprocess.run(f"ssh-keyscan -p {port} {ip} >> /root/.ssh/known_hosts 2>/dev/null", shell=True)
+
+    if password:
+        # Password-based auth (paramiko transport, no key needed)
+        client = docker.DockerClient(base_url=f"ssh://{user}:{password}@{ip}:{port}", use_ssh_client=False)
+    else:
+        # Key-based auth (existing method)
+        _ensure_ssh_ready(node)
+        client = docker.DockerClient(base_url=f"ssh://{ip}", use_ssh_client=True)
+
     _clients[node_id] = client
     return client
 
