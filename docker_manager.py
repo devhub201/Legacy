@@ -129,3 +129,24 @@ def create_vps_container(node, name, image, ssh_port, mem_bytes, nano_cpus):
     container.exec_run("bash -c 'apt update && apt install -y openssh-server && service ssh start' || "
                         "sh -c 'apk add openssh && ssh-keygen -A && /usr/sbin/sshd'")
     return container.id
+
+
+def reinstall_container(node, name):
+    client = get_client(node)
+    container = client.containers.get(name)
+    port_bindings = container.attrs["HostConfig"]["PortBindings"]
+    mem_limit = container.attrs["HostConfig"].get("Memory")
+    nano_cpus = container.attrs["HostConfig"].get("NanoCpus")
+    image = container.image.tags[0] if container.image.tags else container.image.id
+
+    container.stop(timeout=10)
+    container.remove()
+
+    new_container = client.containers.run(
+        image, name=name, detach=True, tty=True,
+        ports=port_bindings, mem_limit=mem_limit, nano_cpus=nano_cpus,
+        labels={"legacycloud": "vps"}, command="sleep infinity",
+    )
+    new_container.exec_run("bash -c 'apt update && apt install -y openssh-server && service ssh start' || "
+                            "sh -c 'apk add openssh && ssh-keygen -A && /usr/sbin/sshd'")
+    return new_container.id
