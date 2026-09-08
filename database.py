@@ -60,6 +60,12 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT, vps_id INTEGER, reason TEXT,
         status TEXT DEFAULT 'pending', created_at TEXT, sent_at TEXT
     )""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS nodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, ip TEXT,
+    ssh_user TEXT DEFAULT 'root', ssh_port INTEGER DEFAULT 22,
+    ssh_password TEXT,
+    ram_total TEXT, cpu_total TEXT, disk_total TEXT, created_at TEXT
+)""")
 
     init_admin_auth_table(conn)
 
