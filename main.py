@@ -143,9 +143,10 @@ async def nodes_page(request: Request):
 @app.post("/nodes/add")
 async def nodes_add(request: Request, name: str = Form(...), ip: str = Form(...),
                      ssh_user: str = Form("root"), ssh_port: int = Form(22),
-                     ram_total: str = Form(...), cpu_total: str = Form(...), disk_total: str = Form(...)):
+                     ram_total: str = Form(...), cpu_total: str = Form(...), disk_total: str = Form(...),
+                     ssh_password: str = Form(None)):
     require_owner(request)
-    db.add_node(name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total)
+    db.add_node(name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total, ssh_password or None)
     return RedirectResponse("/nodes", status_code=303)
 
 
