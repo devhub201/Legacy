@@ -98,15 +98,14 @@ def get_admin_credentials():
     return dict(row) if row else {"email": None, "password_hash": None}
 
 
-def add_node(name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total):
+def add_node(name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total, ssh_password=None):
     conn = get_db()
     conn.execute(
-        "INSERT INTO nodes (name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total, created_at) VALUES (?,?,?,?,?,?,?,?)",
-        (name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total, datetime.utcnow().isoformat())
+        "INSERT INTO nodes (name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total, ssh_password, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+        (name, ip, ssh_user, ssh_port, ram_total, cpu_total, disk_total, ssh_password, datetime.utcnow().isoformat())
     )
     conn.commit()
     conn.close()
-
 
 def list_nodes():
     conn = get_db()
